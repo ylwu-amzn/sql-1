@@ -1,5 +1,6 @@
 package org.opensearch.sql.planner.physical;
 
+import com.google.common.collect.ImmutableMap;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -50,7 +51,7 @@ public class MLCommonsOperator extends PhysicalPlan {
     private final String modelId;
 
     @Getter
-    private final  MachineLearningClient machineLearningClient;
+    private final MachineLearningClient machineLearningClient;
 
     @EqualsAndHashCode.Exclude
     private Iterator<ExprValue> iterator;
