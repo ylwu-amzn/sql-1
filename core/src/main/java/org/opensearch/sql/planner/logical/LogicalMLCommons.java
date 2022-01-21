@@ -18,8 +18,6 @@ public class LogicalMLCommons extends LogicalPlan {
 
   private final List<Argument> arguments;
 
-  private final String modelId;
-
   /**
    * Constructor of LogicalMLCommons.
    * @param child child logical plan
@@ -28,22 +26,9 @@ public class LogicalMLCommons extends LogicalPlan {
    */
   public LogicalMLCommons(LogicalPlan child, String algorithm,
                           List<Argument> arguments) {
-    this(child, algorithm, arguments, null);
-  }
-
-  /**
-   * Constructor of LogicalMLCommons.
-   * @param child child logical plan
-   * @param algorithm algorithm name
-   * @param arguments arguments of the algorithm
-   * @param modelId id of model
-   */
-  public LogicalMLCommons(LogicalPlan child, String algorithm,
-                          List<Argument> arguments, String modelId) {
     super(Collections.singletonList(child));
     this.algorithm = algorithm;
     this.arguments = arguments;
-    this.modelId = modelId;
   }
 
   @Override

@@ -47,9 +47,6 @@ public class MLCommonsOperator extends PhysicalPlan {
   private final List<Argument> arguments;
 
   @Getter
-  private final String modelId;
-
-  @Getter
   private final MachineLearningClient machineLearningClient;
 
   @EqualsAndHashCode.Exclude

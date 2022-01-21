@@ -132,7 +132,6 @@ public class OpenSearchExecutionProtector extends ExecutionProtector {
     return new MLCommonsOperator(visitInput(mlCommonsOperator.getInput(), context),
             mlCommonsOperator.getAlgorithm(),
             mlCommonsOperator.getArguments(),
-            mlCommonsOperator.getModelId(),
             mlCommonsOperator.getMachineLearningClient());
   }
 
