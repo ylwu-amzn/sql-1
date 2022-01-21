@@ -14,12 +14,15 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.opensearch.sql.opensearch.client.OpenSearchClient;
 
 @ExtendWith(MockitoExtension.class)
 public class OpenSearchDefaultImplementorTest {
 
   @Mock
   OpenSearchIndexScan indexScan;
+  @Mock
+  OpenSearchClient client;
 
   /**
    * For test coverage.
@@ -27,7 +30,7 @@ public class OpenSearchDefaultImplementorTest {
   @Test
   public void visitInvalidTypeShouldThrowException() {
     final OpenSearchIndex.OpenSearchDefaultImplementor implementor =
-        new OpenSearchIndex.OpenSearchDefaultImplementor(indexScan);
+        new OpenSearchIndex.OpenSearchDefaultImplementor(indexScan, client);
 
     final IllegalStateException exception =
         assertThrows(IllegalStateException.class, () -> implementor.visitNode(relation("index"),
