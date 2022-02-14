@@ -26,6 +26,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.opensearch.client.node.NodeClient;
 import org.opensearch.ml.client.MachineLearningClient;
 import org.opensearch.ml.common.dataframe.DataFrame;
 import org.opensearch.ml.common.dataframe.DataFrameBuilder;
@@ -48,6 +49,9 @@ public class MLCommonsOperatorTest {
   @Mock(answer =  Answers.RETURNS_DEEP_STUBS)
   private MachineLearningClient machineLearningClient;
 
+  @Mock
+  private NodeClient nodeClient;
+
   private MLCommonsOperator mlCommonsOperator;
 
   @BeforeEach
@@ -60,7 +64,7 @@ public class MLCommonsOperatorTest {
                     AstDSL.argument("k5", AstDSL.shortLiteral((short)2)),
                     AstDSL.argument("k6", AstDSL.longLiteral(2L)),
                     AstDSL.argument("k7", AstDSL.floatLiteral(2F))),
-            machineLearningClient);
+            nodeClient);
     when(input.hasNext()).thenReturn(true).thenReturn(false);
     ImmutableMap.Builder<String, ExprValue> resultBuilder = new ImmutableMap.Builder<>();
     resultBuilder.put("k1", new ExprIntegerValue(2));

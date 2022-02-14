@@ -16,7 +16,9 @@ import java.util.concurrent.TimeUnit;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.opensearch.client.node.NodeClient;
 import org.opensearch.ml.client.MachineLearningClient;
+import org.opensearch.ml.client.MachineLearningNodeClient;
 import org.opensearch.ml.common.dataframe.ColumnMeta;
 import org.opensearch.ml.common.dataframe.ColumnValue;
 import org.opensearch.ml.common.dataframe.DataFrame;
@@ -40,6 +42,8 @@ import org.opensearch.sql.data.model.ExprValue;
 import org.opensearch.sql.planner.physical.PhysicalPlan;
 import org.opensearch.sql.planner.physical.PhysicalPlanNodeVisitor;
 
+import static org.opensearch.ml.common.parameter.FunctionName.KMEANS;
+
 /**
  * ml-commons Physical operator to call machine learning interface to get results for
  * algorithm execution.
@@ -57,7 +61,7 @@ public class MLCommonsOperator extends PhysicalPlan {
   private final List<Argument> arguments;
 
   @Getter
-  private final MachineLearningClient machineLearningClient;
+  private final NodeClient nodeClient;
 
   @EqualsAndHashCode.Exclude
   private Iterator<ExprValue> iterator;
@@ -72,6 +76,7 @@ public class MLCommonsOperator extends PhysicalPlan {
             .parameters(mlAlgoParams)
             .inputDataset(new DataFrameInputDataset(inputDataFrame))
             .build();
+    MachineLearningClient machineLearningClient = new MachineLearningNodeClient(nodeClient);
     MLPredictionOutput predictionResult = (MLPredictionOutput) machineLearningClient
             .trainAndPredict(mlinput)
             .actionGet(30, TimeUnit.SECONDS);
@@ -126,8 +131,9 @@ public class MLCommonsOperator extends PhysicalPlan {
                   + argument.getValue().getType());
         }
       default:
-        throw new IllegalArgumentException("unsupported argument type:"
-                + argument.getValue().getType());
+        // TODO: update available algorithms in the message when adding a new case
+        throw new IllegalArgumentException(String.format("unsupported algorithm: %s, available algorithms: %s.",
+                FunctionName.valueOf(algorithm.toUpperCase()), KMEANS));
     }
   }
 
@@ -165,10 +171,9 @@ public class MLCommonsOperator extends PhysicalPlan {
   private DataFrame generateInputDataset() {
     List<Map<String, Object>> inputData = new LinkedList<>();
     while (input.hasNext()) {
-      Map<String, Object> items = new HashMap<>();
-      input.next().tupleValue().forEach((key, value) ->
-              items.put(key, value.value()));
-      inputData.add(items);
+      inputData.add(new HashMap<String, Object>() {{
+        input.next().tupleValue().forEach((key, value) -> put(key, value.value()));
+      }});
     }
 
     return DataFrameBuilder.load(inputData);
