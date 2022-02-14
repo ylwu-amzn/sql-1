@@ -8,7 +8,6 @@ package org.opensearch.sql.opensearch.client;
 
 import java.util.List;
 import java.util.Map;
-
 import org.opensearch.client.node.NodeClient;
 import org.opensearch.sql.opensearch.mapping.IndexMapping;
 import org.opensearch.sql.opensearch.request.OpenSearchRequest;

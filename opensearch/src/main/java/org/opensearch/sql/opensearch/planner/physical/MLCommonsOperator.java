@@ -5,6 +5,8 @@
 
 package org.opensearch.sql.opensearch.planner.physical;
 
+import static org.opensearch.ml.common.parameter.FunctionName.KMEANS;
+
 import com.google.common.collect.ImmutableMap;
 import java.util.Collections;
 import java.util.HashMap;
@@ -41,8 +43,6 @@ import org.opensearch.sql.data.model.ExprTupleValue;
 import org.opensearch.sql.data.model.ExprValue;
 import org.opensearch.sql.planner.physical.PhysicalPlan;
 import org.opensearch.sql.planner.physical.PhysicalPlanNodeVisitor;
-
-import static org.opensearch.ml.common.parameter.FunctionName.KMEANS;
 
 /**
  * ml-commons Physical operator to call machine learning interface to get results for
@@ -132,7 +132,8 @@ public class MLCommonsOperator extends PhysicalPlan {
         }
       default:
         // TODO: update available algorithms in the message when adding a new case
-        throw new IllegalArgumentException(String.format("unsupported algorithm: %s, available algorithms: %s.",
+        throw new IllegalArgumentException(
+                String.format("unsupported algorithm: %s, available algorithms: %s.",
                 FunctionName.valueOf(algorithm.toUpperCase()), KMEANS));
     }
   }
@@ -171,9 +172,11 @@ public class MLCommonsOperator extends PhysicalPlan {
   private DataFrame generateInputDataset() {
     List<Map<String, Object>> inputData = new LinkedList<>();
     while (input.hasNext()) {
-      inputData.add(new HashMap<String, Object>() {{
-        input.next().tupleValue().forEach((key, value) -> put(key, value.value()));
-      }});
+      inputData.add(new HashMap<String, Object>() {
+        {
+          input.next().tupleValue().forEach((key, value) -> put(key, value.value()));
+        }
+      });
     }
 
     return DataFrameBuilder.load(inputData);

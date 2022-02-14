@@ -267,7 +267,8 @@ class OpenSearchExecutionProtectorTest {
                 nodeClient
             );
 
-    assertEquals(executionProtector.doProtect(mlCommonsOperator), executionProtector.visitMLCommons(mlCommonsOperator, null));
+    assertEquals(executionProtector.doProtect(mlCommonsOperator),
+            executionProtector.visitMLCommons(mlCommonsOperator, null));
   }
 
   PhysicalPlan resourceMonitor(PhysicalPlan input) {
