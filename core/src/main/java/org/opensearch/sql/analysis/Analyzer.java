@@ -378,7 +378,7 @@ public class Analyzer extends AbstractNodeVisitor<LogicalPlan, AnalysisContext> 
     List<Argument> options = node.getOptions();
 
     TypeEnvironment currentEnv = context.peek();
-    currentEnv.define(new Symbol(Namespace.FIELD_NAME, "clusterId"), ExprCoreType.INTEGER);
+    currentEnv.define(new Symbol(Namespace.FIELD_NAME, "ClusterID"), ExprCoreType.INTEGER);
 
     return new LogicalMLCommons(child, "kmeans", options);
   }

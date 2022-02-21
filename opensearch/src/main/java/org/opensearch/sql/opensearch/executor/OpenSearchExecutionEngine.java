@@ -10,6 +10,8 @@ import com.google.common.collect.ImmutableMap;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.opensearch.sql.common.response.ResponseListener;
 import org.opensearch.sql.data.model.ExprValue;
 import org.opensearch.sql.executor.ExecutionEngine;
@@ -22,7 +24,7 @@ import org.opensearch.sql.storage.TableScanOperator;
 /** OpenSearch execution engine implementation. */
 @RequiredArgsConstructor
 public class OpenSearchExecutionEngine implements ExecutionEngine {
-
+  private static final Logger LOG = LogManager.getLogger(OpenSearchExecutionEngine.class);
   private final OpenSearchClient client;
 
   private final ExecutionProtector executionProtector;
@@ -36,9 +38,13 @@ public class OpenSearchExecutionEngine implements ExecutionEngine {
             List<ExprValue> result = new ArrayList<>();
             plan.open();
 
+            LOG.info("====================");
             while (plan.hasNext()) {
-              result.add(plan.next());
+              ExprValue next = plan.next();
+              LOG.info("next is: {}", next);
+              result.add(next);
             }
+            LOG.info("====================");
 
             QueryResponse response = new QueryResponse(physicalPlan.schema(), result);
             listener.onResponse(response);

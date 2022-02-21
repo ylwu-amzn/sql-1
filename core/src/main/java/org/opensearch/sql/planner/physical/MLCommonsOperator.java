@@ -11,6 +11,8 @@ import java.util.concurrent.TimeUnit;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.opensearch.ml.client.MachineLearningClient;
 import org.opensearch.ml.common.dataframe.ColumnMeta;
 import org.opensearch.ml.common.dataframe.ColumnValue;
@@ -23,6 +25,7 @@ import org.opensearch.ml.common.parameter.KMeansParams;
 import org.opensearch.ml.common.parameter.MLAlgoParams;
 import org.opensearch.ml.common.parameter.MLInput;
 import org.opensearch.ml.common.parameter.MLPredictionOutput;
+import org.opensearch.ml.common.parameter.MLTrainingOutput;
 import org.opensearch.sql.ast.expression.Argument;
 import org.opensearch.sql.data.model.ExprDoubleValue;
 import org.opensearch.sql.data.model.ExprIntegerValue;
@@ -37,6 +40,7 @@ import org.opensearch.sql.data.model.ExprValue;
 @RequiredArgsConstructor
 @EqualsAndHashCode(callSuper = false)
 public class MLCommonsOperator extends PhysicalPlan {
+  private static final Logger LOG = LogManager.getLogger(MLCommonsOperator.class);
   @Getter
   private final PhysicalPlan input;
 
@@ -63,9 +67,15 @@ public class MLCommonsOperator extends PhysicalPlan {
             .parameters(mlAlgoParams)
             .inputDataset(new DataFrameInputDataset(inputDataFrame))
             .build();
-    MLPredictionOutput predictionResult = (MLPredictionOutput) machineLearningClient
-            .trainAndPredict(mlinput)
-            .actionGet(30, TimeUnit.SECONDS);
+//    MLPredictionOutput predictionResult = (MLPredictionOutput) machineLearningClient
+//            .trainAndPredict(mlinput)
+//            .actionGet(30, TimeUnit.SECONDS);
+//    LOG.info("ML train and predict response {}", predictionResult.getPredictionResult());
+    MLTrainingOutput output = (MLTrainingOutput)machineLearningClient.train(mlinput, false).actionGet(30, TimeUnit.SECONDS);
+    String modelId = output.getModelId();
+    LOG.info("MLTrainingOutput {}", modelId);
+    MLPredictionOutput predictionResult = (MLPredictionOutput)machineLearningClient.predict(modelId, mlinput).actionGet(30, TimeUnit.SECONDS);
+    LOG.info("MLPredictionOutput {}", predictionResult.getPredictionResult());
     Iterator<Row> inputRowIter = inputDataFrame.iterator();
     Iterator<Row> resultRowIter = predictionResult.getPredictionResult().iterator();
     iterator = new Iterator<ExprValue>() {
@@ -77,12 +87,16 @@ public class MLCommonsOperator extends PhysicalPlan {
       @Override
       public ExprValue next() {
         ImmutableMap.Builder<String, ExprValue> resultBuilder = new ImmutableMap.Builder<>();
+        //LOG.info("------------ input");
         resultBuilder.putAll(convertRowIntoExprValue(inputDataFrame.columnMetas(),
                 inputRowIter.next()));
+        //LOG.info("------------ result");
         resultBuilder.putAll(convertRowIntoExprValue(
                 predictionResult.getPredictionResult().columnMetas(),
                 resultRowIter.next()));
-        return ExprTupleValue.fromExprValueMap(resultBuilder.build());
+        ImmutableMap<String, ExprValue> map = resultBuilder.build();
+        LOG.info("map: {}", map);
+        return ExprTupleValue.fromExprValueMap(map);
       }
     };
   }
@@ -121,23 +135,30 @@ public class MLCommonsOperator extends PhysicalPlan {
 
   private Map<String, ExprValue> convertRowIntoExprValue(ColumnMeta[] columnMetas, Row row) {
     ImmutableMap.Builder<String, ExprValue> resultBuilder = new ImmutableMap.Builder<>();
+    StringBuilder sb = new StringBuilder();
     for (int i = 0; i < columnMetas.length; i++) {
       ColumnValue columnValue = row.getValue(i);
       String resultKeyName = columnMetas[i].getName();
+      sb.append(resultKeyName).append(":");
       switch (columnValue.columnType()) {
         case INTEGER:
+          sb.append(columnValue.intValue()).append("; ");
           resultBuilder.put(resultKeyName, new ExprIntegerValue(columnValue.intValue()));
           break;
         case DOUBLE:
+          sb.append(columnValue.doubleValue()).append("; ");
           resultBuilder.put(resultKeyName, new ExprDoubleValue(columnValue.doubleValue()));
           break;
         case STRING:
+          sb.append(columnValue.stringValue()).append("; ");
           resultBuilder.put(resultKeyName, new ExprStringValue(columnValue.stringValue()));
           break;
         default:
+          LOG.warn("Invalid result type {}" + columnValue.columnType());
           break;
       }
     }
+    LOG.info("{}", sb.toString());
     return resultBuilder.build();
   }
 
