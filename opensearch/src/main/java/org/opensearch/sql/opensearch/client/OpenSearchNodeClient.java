@@ -149,7 +149,7 @@ public class OpenSearchNodeClient implements OpenSearchClient {
 
   @Override
   public NodeClient getNodeClient() {
-    return new NodeClient(client.settings(), client.threadPool());
+    return client;
   }
 
   private String[] resolveIndexExpression(ClusterState state, String[] indices) {
