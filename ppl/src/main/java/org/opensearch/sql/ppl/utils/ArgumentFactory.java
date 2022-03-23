@@ -29,6 +29,7 @@ import org.opensearch.sql.ast.expression.Argument;
 import org.opensearch.sql.ast.expression.DataType;
 import org.opensearch.sql.ast.expression.Literal;
 import org.opensearch.sql.common.utils.StringUtils;
+import org.opensearch.sql.ppl.antlr.parser.OpenSearchPPLParser;
 import org.opensearch.sql.ppl.antlr.parser.OpenSearchPPLParser.AdCommandContext;
 import org.opensearch.sql.ppl.antlr.parser.OpenSearchPPLParser.KmeansCommandContext;
 
@@ -161,18 +162,30 @@ public class ArgumentFactory {
    * @return the list of arguments fetched from the AD command
    */
   public static Map<String, Literal> getArgumentMap(AdCommandContext ctx) {
-    return new HashMap<String, Literal>() {{
-        put(SHINGLE_SIZE, (ctx.shingle_size != null)
-              ? getArgumentValue(ctx.shingle_size)
-              : new Literal(null, DataType.INTEGER));
-        put(TIME_DECAY, (ctx.time_decay != null)
-              ? getArgumentValue(ctx.time_decay)
-              : new Literal(null, DataType.DOUBLE));
-        put(TIME_FIELD, (ctx.time_field != null)
-              ? getArgumentValue(ctx.time_field)
-              : new Literal(null, DataType.STRING));
+    List<OpenSearchPPLParser.AdParameterContext> adParameters = ctx.adParameter();
+    Literal shingleSize = null;
+    Literal timeDecay = null;
+    Literal timeField = null;
+    for (OpenSearchPPLParser.AdParameterContext p : adParameters) {
+      IntegerLiteralContext shingle_size = p.shingle_size;
+      DecimalLiteralContext time_decay = p.time_decay;
+      OpenSearchPPLParser.StringLiteralContext time_field = p.time_field;
+
+      if (shingle_size != null) {
+        shingleSize = getArgumentValue(shingle_size);
       }
-    };
+      if (time_decay != null) {
+        timeDecay =getArgumentValue(time_decay);
+      }
+      if (time_field != null) {
+        timeField =getArgumentValue(time_field);
+      }
+    }
+    HashMap<String, Literal> params = new HashMap<>();
+    params.put(SHINGLE_SIZE,shingleSize != null? shingleSize : new Literal(null, DataType.INTEGER));
+    params.put(TIME_DECAY,timeDecay != null? timeDecay : new Literal(null, DataType.DOUBLE));
+    params.put(TIME_FIELD,timeField != null? timeField : new Literal(null, DataType.STRING));
+    return params;
   }
 
   private static Literal getArgumentValue(ParserRuleContext ctx) {

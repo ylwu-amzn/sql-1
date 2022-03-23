@@ -94,10 +94,13 @@ kmeansCommand
     ;
 
 adCommand
-    : AD
-    (SHINGLE_SIZE EQUAL shingle_size=integerLiteral)?
-    (TIME_DECAY EQUAL time_decay=decimalLiteral)?
-    (TIME_FIELD EQUAL time_field=stringLiteral)?
+    : AD adParameter (COMMA adParameter)*
+    ;
+
+adParameter
+    : (SHINGLE_SIZE EQUAL shingle_size=integerLiteral) |
+    (TIME_DECAY EQUAL time_decay=decimalLiteral) |
+    (TIME_FIELD EQUAL time_field=stringLiteral) |
     ;
 
 /** clauses */
